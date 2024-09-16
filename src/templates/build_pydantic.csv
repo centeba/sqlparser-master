@@ -1,0 +1,87 @@
+
+
+from pydantic import BaseModel
+from datetime import date, datetime, time
+from typing import Optional, Any
+
+class {{table_name}}InfoBase(BaseModel):
+
+    {% for col in columns %}
+        {% if col.coltype == "int" %}
+            {% if col.nullable == True %}
+                {{col.colname}} : int
+            {% else %}
+                {{col.colname}}: Optional[int]
+            {% endif %}
+        {% elif col.coltype == "varchar" %}
+            {% if col.nullable == True %}
+                {{col.colname}} : str
+            {% else %}
+                {{col.colname}}: Optional[str]
+            {% endif %}
+         {% elif col.coltype == "INT" %}
+            {% if col.nullable == True %}
+                {{col.colname}} : INT
+            {% else %}
+                {{col.colname}}: Optional[INT]
+            {% endif %}
+         {% elif col.coltype == "text" %}
+            {% if col.nullable == True %}
+                {{col.colname}} : str
+            {% else %}
+                {{col.colname}}: Optional[str]
+            {% endif %}
+        {% elif col.coltype == "date"  %}
+             {% if col.nullable == True %}
+                {{col.colname}} : date
+             {% else %}
+                {{col.colname}}: Optional[date]
+            {% endif %}
+        {% elif col.coltype == "boolean" %}
+             {% if col.nullable == True %}
+                {{col.colname}} : bool
+             {% else %}
+                {{col.colname}}: Optional[bool]
+            {% endif %}
+        {% elif col.coltype == "float"  %}
+             {% if col.nullable == True %}
+                {{col.colname}} : float
+             {% else %}
+                {{col.colname}}: Optional[float]
+            {% endif %}
+        {% elif col.coltype == "timestamp"  %}
+             {% if col.nullable == True %}
+                {{col.colname}} : datetime
+             {% else %}
+                {{col.colname}}: Optional[datetime.datetime]
+            {% endif %}
+        {% elif col.coltype == "time"  %}
+             {% if col.nullable == True %}
+                {{col.colname}} : time
+             {% else %}
+                {{col.colname}}: Optional[time]
+            {% endif %}
+        {% elif col.coltype == "json"  %}
+             {% if col.nullable == True %}
+                {{col.colname}} : date
+             {% else %}
+                {{col.colname}}: Optional[date]
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+
+
+class {{table_name}}InfoCreate({{table_name}}InfoBase):
+    pass
+
+class {{table_name}}InfoUpdate({{table_name}}InfoBase):
+    pass
+
+class {{table_name}}InfoInDBBase({{table_name}}InfoBase):
+    class Config:
+        orm_mode = True
+
+class {{table_name}}Info({{table_name}}InfoInDBBase):
+    pass
+
+

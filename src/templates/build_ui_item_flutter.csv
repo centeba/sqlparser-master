@@ -1,0 +1,150 @@
+
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+void main() {
+  static const String baseURL = String.fromEnvironment('BASE_URL')
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: '{{table_name}} Info App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: {{table_name}}InfoScreen(),
+    );
+  }
+}
+
+class {{table_name}}InfoScreen extends StatefulWidget {
+  @override
+  _{{table_name}}InfoScreenState createState() => _{{table_name}}InfoScreenState();
+}
+
+class _{{table_name}}InfoScreenState extends State<{{table_name}}InfoScreen> {
+  List<dynamic> {{table_name}}InfoList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  Future<void> fetchData() async {
+    final response = await http.get('Environment.baseURL/{{table_name}}/');
+    if (response.statusCode == 200) {
+      setState(() {
+        {{table_name}}InfoList = json.decode(response.body);
+      });
+    } else {
+      throw Exception('Failed to load {{table_name}} info');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('{{table_name}} Information'),
+      ),
+      body: ListView.builder(
+        itemCount: {{table_name}}nfoList.length,
+        itemBuilder: (context, rowIndex) {
+          return Table(
+            border: TableBorder.all(color: Colors.grey),
+            columnWidths: {
+              0: FlexColumnWidth(1),
+              1: FlexColumnWidth(2),
+            },
+            children: [
+              TableRow(
+                children: [
+                  TableCell(
+                    child: Container(
+                      padding: EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[100],
+                      ),
+                      child: Text(
+                        'Column F2',
+                        style: TextStyle(
+                          css: 'styles.css',
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ),
+                  TableCell(
+                    child: Container(
+                      padding: EdgeInsets.all(8.0),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[100],
+                      ),
+                      child: Text(
+                        'Column F3',
+                        style: TextStyle(
+                          css: 'styles.css',
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              TableRow(
+                children: [
+                  TableCell(
+                    child: GestureDetector(
+                      onTap: () {
+                        // Implement update functionality
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          clientInfoList[rowIndex]['col_f2'],
+                          style: TextStyle(
+                            css: 'styles.css',
+                            fontSize: 14.0,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  TableCell(
+                    child: GestureDetector(
+                      onTap: () {
+                        // Implement update functionality
+                      },
+                      child: Container(
+                        padding: EdgeInsets.all(8.0),
+                        child: Text(
+                          clientInfoList[rowIndex]['col_f3'],
+                          style: TextStyle(
+                            css: 'styles.css',
+                            fontSize: 14.0,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}

@@ -1,0 +1,58 @@
+
+from fastapi import FastAPI, HTTPException, Depends
+from typing import List
+from sqlalchemy.orm import Session
+import db.models.F_{{table_name}}.{{table_name}} as a
+from  db.models.F_{{table_name}}.{{table_name}}_pyd import {{table_name}}InfoBase, {{table_name}}InfoCreate, {{table_name}}InfoUpdate,{{table_name}}InfoInDBBase, {{table_name}}Info
+#import db.models.{{table_name}}_sqla
+import db_conn
+from db_conn import get_db, engine
+from main import app
+
+# Routes
+
+# Insert new record
+@app.post("/{{table_name}}/", response_model={{table_name}}Info)
+def create_{{table_name}}({{table_name}}: {{table_name}}InfoCreate, db: Session = Depends(get_db)):
+    db_{{table_name}} = a.{{table_name}}(**{{table_name}}.dict())
+    db.add(db_{{table_name}})
+    db.commit()
+    db.refresh(db_{{table_name}})
+    return db_{{table_name}}
+
+# Get all records
+@app.get("/{{table_name}}/", response_model=List[{{table_name}}Info])
+def read__{{table_name}}_all(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    return db.query(a.{{table_name}}).offset(skip).limit(limit).all()
+
+# Get single record matching item_id
+@app.get("/{{table_name}}/{{item_id}}", response_model={{table_name}}Info)
+def read_{{table_name}}({{table_name}}_id: int, db: Session = Depends(get_db)):
+    db_{{table_name}} = db.query(db.models.{{table_name}}Info).filter(db.models.{{table_name}}Info.col_f1 == {{item_id}}).first()
+    if db_{{table_name}} is None:
+        raise HTTPException(status_code=404, detail="{{table_name}} info not found")
+    return db_{{table_name}}
+
+# Update a record
+@app.put("/{{table_name}}/{{item_id}}", response_model={{table_name}}Info)
+def update_{{table_name}}({{item_id}}: int, {{table_name}}: {{table_name}}InfoUpdate, db: Session = Depends(get_db)):
+    db_{{table_name}} = db.query(a.{{table_name}}Info).filter(a.{{table_name}}Info.col_f1 == {{item_id}}).first()
+    if db_{{table_name}} is None:
+        raise HTTPException(status_code=404, detail="{{table_name}} info not found")
+    for key, value in {{table_name}}.dict().items():
+        setattr(db_{{table_name}}, key, value)
+    db.commit()
+    db.refresh(db_{{table_name}})
+    return db_{{table_name}}
+
+# Delete a record
+@app.delete("/{{table_name}}/{{item_id}}", response_model={{table_name}}Info)
+def delete_{{table_name}}({{table_name}}_id: int, db: Session = Depends(get_db)):
+    db_{{table_name}} = db.query(a.{{table_name}}Info).filter(a.{{table_name}}Info.col_f1 == {{item_id}}).first()
+    if db_{{table_name}} is None:
+        raise HTTPException(status_code=404, detail="{{table_name}} info not found")
+    db.delete(db_{{table_name}})
+    db.commit()
+    return db_{{table_name}}
+
+

@@ -1,0 +1,152 @@
+version: '3.9'
+ENVIRONMENT="./.env"
+RUN ${ENVIRONMENT}
+
+services:
+  db:
+    image: postgres:latest
+    container_name: db
+    restart: always
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_NAME}
+      - PGDATA=${DBDATA}
+    expose:
+      - 5432
+    ports:
+      - 5433:5432
+
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_LOGIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_LOGIN_PASSWORD}
+    ports:
+      - ${PGADMIN_PORT}
+
+
+  backend_app:
+    container_name: backend_app
+    restart: always
+    build:
+      dockerfile: Dockerfile
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT}
+      - DEBUG=${DEBUG}
+      - POSTGRES_DB=${DATABASE_NAME}
+      - POSTGRES_HOST=${DATABASE_HOST}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_PORT=${DATABASE_PORT}
+      - POSTGRES_USERNAME=${DATABASE_USERNAME}
+      - BACKEND_SERVER_HOST=${BACKEND_SERVER_HOST}
+      - BACKEND_SERVER_PORT=${BACKEND_SERVER_PORT}
+      - BACKEND_SERVER_WORKERS=${BACKEND_SERVER_WORKERS}
+      - DB_TIMEOUT=${DB_TIMEOUT}
+      - DB_POOL_SIZE=${DB_POOL_SIZE}
+      - DB_MAX_POOL_CON=${DB_MAX_POOL_CON}
+      - DB_POOL_OVERFLOW=${DB_POOL_OVERFLOW}
+      - IS_DB_ECHO_LOG=${IS_DB_ECHO_LOG}
+      - IS_DB_EXPIRE_ON_COMMIT=${IS_DB_EXPIRE_ON_COMMIT}
+      - IS_DB_FORCE_ROLLBACK=${IS_DB_FORCE_ROLLBACK}
+      - IS_ALLOWED_CREDENTIALS=${IS_ALLOWED_CREDENTIALS}
+      - API_TOKEN=${API_TOKEN}
+      - AUTH_TOKEN=${AUTH_TOKEN}
+      - JWT_SECRET_KEY=${SECRET_KEY}
+      - JWT_SUBJECT=${JWT_SUBJECT}
+      - JWT_TOKEN_PREFIX=${JWT_TOKEN_PREFIX}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - JWT_MIN=${JWT_MIN}
+      - JWT_HOUR=${JWT_HOUR}
+      - JWT_DAY=${JWT_DAY}
+      - HASHING_ALGORITHM_LAYER_1=${HASHING_ALGORITHM_LAYER_1}
+      - HASHING_ALGORITHM_LAYER_2=${HASHING_ALGORITHM_LAYER_2}
+      - HASHING_SALT=${HASHING_SALT}
+    volumes:
+      - ./backend/:/usr/backend/
+    expose:
+      - 8000
+    ports:
+      - 8001:8000
+    depends_on:
+      - db
+
+volumes:
+  postgresql_db_data:
+
+============================================
+
+
+ # Redis container
+  redis:
+    image: redis:latest
+    container_name: my_redis
+    ports:
+      - ${REDIS_PORT}
+    networks:
+      - mynetwork
+	env_file: .env
+
+  celery_worker:
+    container_name: celery_worker
+    restart: always
+    # platform: linux/arm64/v8
+    build: ./backend
+    command: "watchfiles 'celery -A app.core.celery worker -l info' "
+    volumes:
+      - ./backend/app:/code
+      # - "${EB_LOG_BASE_DIR}/php-app:/var/log/celery"
+    depends_on:
+      - database
+      - redis_server
+    env_file: .env
+
+  celery_beat:  #Good for crontab and schedule tasks
+    container_name: celery_beat
+    restart: always
+    # platform: linux/arm64/v8
+    build:
+      context: ./backend
+      args:
+        INSTALL_DEV: ${INSTALL_DEV-false}
+    command: celery -A app.core.celery beat -l info -S celery_sqlalchemy_scheduler.schedulers:DatabaseScheduler -l info
+    volumes:
+      - ./backend/app:/code
+      # - "${EB_LOG_BASE_DIR}/php-app:/var/log/celery-beat"
+    depends_on:
+      - database
+      - redis_server
+    env_file: .env
+
+  caddy_reverse_proxy:
+    container_name: caddy_reverse_proxy
+    image: caddy:alpine
+    restart: always
+    ports:
+      - 80:80      
+      - 443:443
+    environment:
+      - EXT_ENDPOINT1=${EXT_ENDPOINT1}
+      - LOCAL_1=${LOCAL_1}
+      - LOCAL_2=${LOCAL_2}
+    volumes:
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile
+      - ./static:/code/static
+      - caddy_data:/data
+      - caddy_config:/config
+
+networks:
+  mynetwork:
+
+==========
+
+docker-compose up -d
+
+# On latest docker version you might need to run
+
+docker compose up -d
+
+Now the use PGAdmin tool, open the browser and access http://localhost:8888/. Enter the username and password for PGAdmin.
+

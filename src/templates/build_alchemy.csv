@@ -1,0 +1,36 @@
+import sqlalchemy
+
+from sqlalchemy import Column, Integer, String, Text, Boolean, Float, Date, TIMESTAMP, Time, JSON, ForeignKey
+
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import mapped_column
+
+
+Base =  sqlalchemy.orm.declarative_base()
+
+class {{table_name}}(Base):  # type: ignore
+    __tablename__ = "{{table_name}}"
+
+{% for col in columns %}
+	{% if col.coltype == "int" %}
+    {{col.colname}}: Mapped[sqlalchemy.types.Integer] = mapped_column(sqlalchemy.Integer, primary_key={{col.pkey}}, autoincrement="auto")
+	{% elif col.coltype == "varchar" %}
+    {{col.colname}}: Mapped[sqlalchemy.types.String] = mapped_column(sqlalchemy.String(length={{col.dim}}), nullable={{col.nullable}}, unique={{col.unique}})
+	{% elif col.coltype == "text" %}
+    {{col.colname}}: Mapped[sqlalchemy.types.Text] = mapped_column(sqlalchemy.Text, primary_key={{col.pkey}}, nullable={{col.nullable}}, autoincrement="auto")
+	{% elif col.coltype == "date"  %}
+    {{col.colname}}: Mapped[sqlalchemy.types.Date] = mapped_column(sqlalchemy.Date, primary_key={{col.pkey}}, nullable={{col.nullable}}, autoincrement="auto")
+	{% elif col.coltype == "boolean" %}
+    {{col.colname}}: Mapped[sqlalchemy.types.Boolean] = mapped_column(sqlalchemy.Boolean, primary_key={{col.pkey}}, nullable={{col.nullable}}, autoincrement="auto")
+	{% elif col.coltype == "float"  %}
+    {{col.colname}}: Mapped[sqlalchemy.types.Float] = mapped_column(sqlalchemy.Float, primary_key={{col.pkey}}, nullable={{col.nullable}}, autoincrement="auto")
+	{% elif col.coltype == "timestamp"  %}
+    {{col.colname}}: Mapped[sqlalchemy.types.DateTime] = mapped_column(sqlalchemy.TIMESTAMP, primary_key={{col.pkey}}, nullable={{col.nullable}}, autoincrement="auto")
+	{% elif col.coltype == "time"  %}
+    {{col.colname}}: Mapped[sqlalchemy.types.Date] = mapped_column(sqlalchemy.Time, primary_key={{col.pkey}}, nullable={{col.nullable}}, autoincrement="auto")
+	{% elif col.coltype == "json"  %}
+    {{col.colname}}: Mapped[sqlalchemy.types.JSON] = mapped_column(sqlalchemy.JSON, primary_key={{col.pkey}}, nullable={{col.nullable}}, autoincrement="auto")
+	{% endif %}
+{% endfor %}
+
